@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="blog.polarbearmaster.com/"/>
-  <updated>2017-04-20T14:47:59.000Z</updated>
+  <updated>2017-06-18T05:54:07.000Z</updated>
   <id>blog.polarbearmaster.com/</id>
   
   <author>
@@ -14,6 +14,115 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>还原：微信红包的背后</title>
+    <link href="blog.polarbearmaster.com/2017/06/14/%E5%BE%AE%E4%BF%A1%E6%8A%A2%E7%BA%A2%E5%8C%85/"/>
+    <id>blog.polarbearmaster.com/2017/06/14/微信抢红包/</id>
+    <published>2017-06-14T12:33:59.000Z</published>
+    <updated>2017-06-18T05:54:07.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="http://wx3.sinaimg.cn/mw690/bd582863gy1fgndjkz8l8j20bo08sglu.jpg" alt="微信红包"></p>
+<blockquote>
+<p>作为一枚 iOS 程序猿，平常的 App 已越来越不能吸引我的兴趣，在这一行干得越久，越能体会到苹果提供的 Foudation，UIKit 等系统框架的强大，它能使一名初学者几乎毫不费力地独立完成一个 App，譬如几天前在 2017 WWDC 苹果开发者大会上 苹果公司CEO 库克声称最年轻的 iOS 仅仅10岁，却有5款作品上架 App Store。那么 iOS 系统底层究竟是怎样的呢？移动互联网巨头微信的框架体系又是怎样使他支持5亿用户的呢？怀着强烈的好奇心，本人在业余时间学习了iOS逆向的基本技巧，承认打铁，把玩了下微信抢红包。</p>
+</blockquote>
+<p><strong>任务分解</strong></p>
+<ul>
+<li>监听到新消息</li>
+<li>判断是红包</li>
+<li>点击红包</li>
+<li>领取红包</li>
+</ul>
+<hr>
+<p>##常用工具</p>
+<ul>
+<li>Reveal</li>
+<li>Cycript</li>
+<li>Hopper Disassembler v4</li>
+<li>LLDB</li>
+<li>debugserver</li>
+<li>dumpdecrypted</li>
+<li>dyld_decache</li>
+</ul>
+<p>##监听到新消息</p>
+<p><img src="http://wx2.sinaimg.cn/mw690/bd582863gy1fgndss9kokj208w05kt9l.jpg" alt="reveal"></p>
+<p>通过 cycript 找到对应 <em>WCPayC2CMessageCellView</em> 的 视图控制器 （微信的设计必然符合苹果提倡的MVC架构）</p>
+<p><img src="http://wx1.sinaimg.cn/mw690/bd582863gy1fgndz4dmzsj212m058tai.jpg" alt="cycript"> </p>
+<p>class dump 出微信所有的头文件后， </p>
+<p><img src="http://wx1.sinaimg.cn/mw690/bd582863gy1fgne7vvxurj205o0amjru.jpg" alt="class dump"> </p>
+<p>找到 <em>BaseMsgContentViewController</em>，<br>搜索 <em>protocol</em>, <em>msg</em>，<em>content</em>，<em>delegate</em> 等关键词，发现</p>
+<p><code>@property(nonatomic) __weak id &lt;BaseMsgContentDelgate&gt; m_delegate; // @synthesize m_delegate;</code></p>
+<p>再次通过 cycript 查看该属性</p>
+<p><img src="http://wx1.sinaimg.cn/mw690/bd582863gy1fgnebxsfyxj20fo00xdfr.jpg" alt="cycript"> </p>
+<p>打开 <em>WeixinContentLogicController</em> 头文件，<br>尝试了几个容易被怀疑的方法诸如</p>
+<p><code>- (void)AddMsg:(id)arg1 MsgWrap:(id)arg2;</code></p>
+<p>效果均不理想。<br>让我们换个角度思考，查看它的父类 <em>BaseMsgContentLogicController</em></p>
+<p><img src="http://wx4.sinaimg.cn/mw690/bd582863gy1fgnepb013mj203c03cq34.jpg" alt=""></p>
+<p>几次尝试后找到下面方法</p>
+<p><code>- (void)modMsgWithoutNotify:(id)arg1;</code></p>
+<p>通过 Hooper Disassembler 查看其内存代码</p>
+<p><img src="http://wx4.sinaimg.cn/mw690/bd582863gy1fgnev3df5tj20jn0263zw.jpg" alt="hooper"></p>
+<p>请出 lldb 附加 debugserver 作进一步分析：</p>
+<p><img src="http://wx3.sinaimg.cn/mw690/bd582863gy1fgnext93fpj213g0a640d.jpg" alt="lldb"></p>
+<p>至此，我们找到了关键类 <em>CMessageMgr</em>， 以及之后要用到的消息结构体 <em>CMessageWrap</em></p>
+<p>查看 <strong>CMessageMgr</strong> 头文件，反（挺）复（明）尝（显）试（的），找到我们需要 hook 的函数</p>
+<p><strong><code>- (void)AsyncOnAddMsg:(id)arg1 MsgWrap:(id)arg2;</code></strong></p>
+<hr>
+<p>##判断是红包</p>
+<p>趁热打铁，查看 <strong>CMessageWrap</strong> 头文件，发现可疑属性2枚，</p>
+<p><strong><code>@property(nonatomic) unsigned long m_uiMessageType; // @synthesize m_uiMessageType;</code></strong></p>
+<p><strong><code>@property(retain, nonatomic) NSString *m_nsContent; // @synthesize m_nsContent;</code></strong></p>
+<p>lldb+debugserver 调试<br>发现 type 为49， content 中包含wxpay://<br>此处省略100字，有图有真相</p>
+<p><img src="http://wx1.sinaimg.cn/mw690/bd582863gy1fgnf73knxij213k0fegqb.jpg" alt="红包消息"></p>
+<hr>
+<p>##点击红包<br>首先 通过 reveal 定位到 <em>WCPayC2CMessageCellView</em> （图片见上方）<br>查看头文件，然并卵，查看其父类 <em>WCPayBaseMessageCellView</em><br>找到 </p>
+<p><code>- (void)onTouchUpInside;</code></p>
+<p>hooper 静态分析 </p>
+<p><code>[BaseMsgContentViewController tapAppNodeView:]</code></p>
+<p>反复阅读其汇编代码后 仔细分析后找到可疑函数</p>
+<p><img src="http://wx3.sinaimg.cn/mw690/bd582863gy1fgnfhyrb8qj210c0i00zu.jpg" alt="startReceiveRedEnvelopesLogic:Data:"></p>
+<p>继续分析</p>
+<p><img src="http://wx2.sinaimg.cn/mw690/bd582863gy1fgnfjpy75pj215o0f6n8z.jpg" alt="WCRedEnvelopesReceiveControlLogic"></p>
+<p>查看 <em>WCRedEnvelopesReceiveControlLogic</em> 头文件，<br>反复尝试（此处省略500字。。。）后发现</p>
+<p><code>- (void)OnReceiverQueryRedEnvelopesRequest:(id)arg1 Error:(id)arg2;</code></p>
+<p>hooper 分析，<br>该方法比较复杂，仔细排查后，把注意力放到左边，</p>
+<p><img src="http://wx1.sinaimg.cn/mw690/bd582863gy1fgnfqzqda3j20nk0nrwn0.jpg" alt="WCRedEnvelopesReceiveControlLogic"></p>
+<p>通过 <em>WCBizUti</em> 解析 <em>nativeUrl</em>，获取关键信息，如<br><em>msgType</em>, <em>sendId</em>, <em>channelId</em>, <em>nativeUrl</em><br>封装在一个字典结构体中，最后调用 <em>QueryRedEnvelopesDetailRequest</em></p>
+<p><img src="http://wx1.sinaimg.cn/mw690/bd582863gy1fgnftxht3bj20zy0gkapo.jpg" alt="WCRedEnvelopesReceiveControlLogic"></p>
+<p>至此，我们得到关键类 <strong>WCRedEnvelopesLogicMgr</strong> 以及关键函数<br><strong><code>- (void)QueryRedEnvelopesDetailRequest:(id)arg1;</code></strong></p>
+<hr>
+<p>##领取红包</p>
+<p>老套路， reveal 打头阵</p>
+<p><img src="http://wx4.sinaimg.cn/mw690/bd582863gy1fgnfwb3m0jj208w05ewf9.jpg" alt="WCRedEnvelopesReceiveHomeView"></p>
+<p>查看 WCRedEnvelopesReceiveHomeView 头文件，<br>发现</p>
+<p><code>id &lt;WCRedEnvelopesReceiveHomeViewDelegate&gt; m_delegate;</code></p>
+<p>同上文所述，定位到 WCRedEnvelopesReceiveControlLogic，<br>尝试</p>
+<p><code>- (void)WCRedEnvelopesReceiveHomeViewOpenRedEnvelopes;</code></p>
+<p>hooper 跟进<br>和打开红包很像，也是由 <em>WCBizUti</em> 解析 <em>nativeUrl</em>, 取关键信息如<br><em>msgType</em>, <em>sendId</em>, <em>channelId</em>, <em>nickName</em>, <em>headImg</em>, <em>nativeUrl</em>, <em>sessionUserName</em>, <em>timingIdentifier</em><br>, 再把他们封装一个字典结构体中<br>最后调用 <em>checkHongbaoOpenLicense:acceptCallback:denyCallback:</em></p>
+<p><img src="http://wx3.sinaimg.cn/mw690/bd582863gy1fgnghlhdn9j20qs065abw.jpg" alt="checkHongbaoOpenLicense:acceptCallback:denyCallback:"></p>
+<p>由于该方法的参数直接从内存中读取的，无法静态分析，下面还是请出我们的终极武器 lldb</p>
+<p><img src="http://wx3.sinaimg.cn/mw690/bd582863gy1fgngaq3vxhj20xq0abjt9.jpg" alt="lldb"></p>
+<p>hooper 跳转地址 <em>0x140CA91</em> (0x014d7a91 减去 0x000cb000（基地址))</p>
+<p><img src="http://wx2.sinaimg.cn/mw690/bd582863gy1fgng9en2ksj20j30e4q85.jpg" alt="checkHongbaoOpenLicense:acceptCallback:denyCallback:"></p>
+<p>我们得到了关键类 <strong>WCRedEnvelopesLogicMgr</strong> 和 hook的函数 <strong><code>- (void)OpenRedEnvelopesRequest:(id)arg1;</code></strong></p>
+<p>PS: 一张图看懂 block 的结构体 </p>
+<p><img src="http://wx2.sinaimg.cn/mw690/bd582863gy1fgngcgfa3ej20j808q75t.jpg" alt="block"></p>
+<hr>
+<p>##完成<br><img src="http://wx2.sinaimg.cn/mw690/bd582863gy1fgnjbee5vug20a006o1kx.gif" alt="lldb"> </p>
+<p>#总结<br>微信作为国内即时通讯的巨头，其平台强大，结构复杂，代码量大，它的设计相当考究，模块划分十分清晰，<br>仅仅是浏览他的头文件就能给我们很多启示，对于有意涉足即时通讯的开发者，相当值得借鉴。</p>
+<p>##Preference<br><a href="https://item.jd.com/11670145.html" target="_blank" rel="external">iOS应用逆向工程</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;img src=&quot;http://wx3.sinaimg.cn/mw690/bd582863gy1fgndjkz8l8j20bo08sglu.jpg&quot; alt=&quot;微信红包&quot;&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;作为一枚 iOS 程序猿，平常的 App 已越来越不能吸引
+    
+    </summary>
+    
+    
+  </entry>
   
   <entry>
     <title>分析一个奇怪的程序</title>
