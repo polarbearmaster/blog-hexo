@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="blog.polarbearmaster.com/"/>
-  <updated>2017-11-19T13:34:15.000Z</updated>
+  <updated>2017-11-19T13:42:16.000Z</updated>
   <id>blog.polarbearmaster.com/</id>
   
   <author>
@@ -16,13 +16,13 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title></title>
+    <title>我对云计算之浅见</title>
     <link href="blog.polarbearmaster.com/2017/11/19/%E6%88%91%E5%AF%B9%E4%BA%91%E8%AE%A1%E7%AE%97%E4%B9%8B%E6%B5%85%E8%A7%81/"/>
     <id>blog.polarbearmaster.com/2017/11/19/我对云计算之浅见/</id>
     <published>2017-11-19T12:22:24.000Z</published>
-    <updated>2017-11-19T13:34:15.000Z</updated>
+    <updated>2017-11-19T13:42:16.000Z</updated>
     
-    <content type="html"><![CDATA[<h1 id="我对云计算之浅见"><a href="#我对云计算之浅见" class="headerlink" title="我对云计算之浅见"></a>我对云计算之浅见</h1><p><img src="%E6%88%91%E5%AF%B9%E4%BA%91%E8%AE%A1%E7%AE%97%E4%B9%8B%E6%B5%85%E8%A7%81/%E6%88%91%E5%AF%B9%E4%BA%91%E8%AE%A1%E7%AE%97%E4%B9%8B%E6%B5%85%E8%A7%81/%E4%BA%91%E8%AE%A1%E7%AE%97.jpg" alt=""></p>
+    <content type="html"><![CDATA[<p><img src="https://wx4.sinaimg.cn/mw690/bd582863gy1flnq1zq874j20jg0ddmxt.jpg" alt="image"></p>
 <p>起源：</p>
 <pre><code>* 低端pc（上网本）VS 台式机 
 </code></pre><p>三分天下：</p>
@@ -51,13 +51,21 @@
 </code></pre><p>Reference：<br>    《浪潮之巅》－ 吴军博士</p>
 <h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>如果说以上提到的是对传统it产业的颠覆，那么云计算真正的影响力不止于此。说它对移动互联网的作用，比如目前在主流app启动页下方均可看到一行小字：</p>
 <blockquote>
-<p>   xx云提供计算服务<br>再比如由于2016年直播app的崛起，直播云的诞生。<br>云计算另一个重要的优势是信息安全，几年前沸沸扬扬的“艳照门”，恰恰是存在个人电脑上的信息泄露引起的。当然，去年的雅虎30亿用户账号信息泄露表明了表明了现在的盗号，网络欺诈，钓鱼的猖狂。阿里云盾的负责人道哥曾说：<br>    我相信未来我们会生活在一个数据被时时监控的时代，被企业出于商业目的监控，被黑客出于牟利目的监控。这就像我们每个人都赤身露体行走在光天化日之下一样，想想就会让人不舒服。如果没有合理的法律和有效的技术保护手段，这将是最糟糕的时代。<br>期待云计算让世界变得更美好</p>
+<p>   xx云提供计算服务</p>
 </blockquote>
+<p>再比如由于2016年直播app的崛起，直播云的诞生。<br>云计算另一个重要的优势是信息安全，几年前沸沸扬扬的“艳照门”，恰恰是存在个人电脑上的信息泄露引起的。当然，去年的雅虎30亿用户账号信息泄露表明了表明了现在的盗号，网络欺诈，钓鱼的猖狂。阿里云盾的负责人道哥曾说：</p>
+<blockquote>
+<pre><code>我相信未来我们会生活在一个数据被时时监控的时代，被企业出于商业目的监控，被黑客出于牟利目的监控。这就像我们每个人都赤身露体行走在光天化日之下一样，想想就会让人不舒服。如果没有合理的法律和有效的技术保护手段，这将是最糟糕的时代。
+</code></pre></blockquote>
+<p>期待云计算让世界变得更美好。</p>
 ]]></content>
     
     <summary type="html">
     
-      &lt;h1 id=&quot;我对云计算之浅见&quot;&gt;&lt;a href=&quot;#我对云计算之浅见&quot; class=&quot;headerlink&quot; title=&quot;我对云计算之浅见&quot;&gt;&lt;/a&gt;我对云计算之浅见&lt;/h1&gt;&lt;p&gt;&lt;img src=&quot;%E6%88%91%E5%AF%B9%E4%BA%91%E8%AE%A1
+      &lt;p&gt;&lt;img src=&quot;https://wx4.sinaimg.cn/mw690/bd582863gy1flnq1zq874j20jg0ddmxt.jpg&quot; alt=&quot;image&quot;&gt;&lt;/p&gt;
+&lt;p&gt;起源：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;* 低端pc（上网本）VS 台式机 
+&lt;/
     
     </summary>
     
